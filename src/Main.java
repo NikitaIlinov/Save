@@ -1,83 +1,108 @@
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        String saveDirPath = "C://Netology//Games//savegames//";
-        String zipFileName = "zip.zip";
-        String zipFilePath = saveDirPath + zipFileName;
+        String baseDirPath = "D:\\JAVA_Projects\\Games\\";
 
-        GameProgress[] gameProgress = {
-                new GameProgress(100, 11, 26, 128.56),
-                new GameProgress(64, 5, 14, 539.255),
-                new GameProgress(28, 1, 5, 1024.684)
-        };
+        String[] directoriesInGames = {"src", "res", "savegames", "temp" };
+        String[] directoriesInSrc = {"main", "test" };
+        String[] filesInMain = {"Main.java", "Utils.java" };
+        String[] directoriesInRes = {"drawables", "vectors", "icons" };
+        String[] filesInTemp = {"temp.txt" };
 
-        List<String> allSaves = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
 
-        saveAllGameProgressObjects(gameProgress, saveDirPath, allSaves);
-        zipFIles(zipFilePath, allSaves);
-        deleteSaveFiles(allSaves);
-    }
-
-    public static void saveAllGameProgressObjects(GameProgress[] gameProgress, String saveDirPath, List<String> allSaves) {
-        for (int i = 0; i < gameProgress.length; i++) {
-            String saveFileName = "save" + i + ".dat";
-            String saveFilePath = saveDirPath + saveFileName;
-            saveGame(saveFilePath, gameProgress[i]);
-            allSaves.add(saveFilePath);
-            System.out.println("Создаем файл сохранений \"" + saveFilePath + "\"");
+        for (int i = 0; i < directoriesInGames.length; i++) {
+            String fullPath = baseDirPath + directoriesInGames[i];
+            File dir = new File(fullPath);
+            String message = "";
+            if (dir.mkdir()) {
+                message = "Каталог \"" + fullPath + "\" создан";
+            } else {
+                message = "Ошибка создания каталога \"" + fullPath + "\"";
+            }
+            System.out.println(message);
+            sb.append(message + "\n");
         }
-    }
 
-    public static void saveGame(String saveFilePath, GameProgress gameProgress) {
-        try (FileOutputStream fos = new FileOutputStream(saveFilePath);
-             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-            oos.writeObject(gameProgress);
-        } catch (Exception ex) {
+        File src = new File(baseDirPath + directoriesInGames[0]);
+        if (src.isDirectory()) {
+            for (int i = 0; i < directoriesInSrc.length; i++) {
+                String fullPath = baseDirPath + directoriesInGames[0] + "\\" + directoriesInSrc[i];
+                File dir = new File(fullPath);
+                String message = "";
+                if (dir.mkdir()) {
+                    message = "Каталог \"" + fullPath + "\" создан";
+                } else {
+                    message = "Ошибка создания каталога \"" + fullPath + "\"";
+                }
+                System.out.println(message);
+                sb.append(message + "\n");
+            }
+        }
+
+        File res = new File(baseDirPath + directoriesInGames[1]);
+        if (res.isDirectory()) {
+            for (int i = 0; i < directoriesInRes.length; i++) {
+                String fullPath = baseDirPath + directoriesInGames[1] + "\\" + directoriesInRes[i];
+                File dir = new File(fullPath);
+                String message = "";
+                if (dir.mkdir()) {
+                    message = "Каталог \"" + fullPath + "\" создан";
+                } else {
+                    message = "Ошибка создания каталога \"" + fullPath + "\"";
+                }
+                System.out.println(message);
+                sb.append(message + "\n");
+            }
+        }
+
+        String fullDirectoryMainPath = baseDirPath + directoriesInGames[0] + "\\" + directoriesInSrc[0] + "\\";
+        for (int i = 0; i < filesInMain.length; i++) {
+            String message = "";
+            String fullMainFileName = fullDirectoryMainPath + filesInMain[i];
+            File myFile = new File(fullMainFileName);
+            try {
+                if (myFile.createNewFile())
+                    message = "Файл \"" + fullMainFileName + "\" создан";
+            } catch (IOException ex) {
+                message = ex.getMessage();
+            } finally {
+                System.out.println(message);
+                sb.append(message + "\n");
+            }
+        }
+
+        String fullDirectoryTempPath = baseDirPath + directoriesInGames[3] + "\\";
+        for (int i = 0; i < filesInTemp.length; i++) {
+            String message = "";
+            String fullFileTempName = fullDirectoryTempPath + filesInTemp[i];
+            File myFile = new File(fullFileTempName);
+            try {
+                if (myFile.createNewFile())
+                    message = "Файл \"" + fullFileTempName + "\" создан";
+            } catch (IOException ex) {
+                message = ex.getMessage();
+            } finally {
+                System.out.println(message);
+                sb.append(message + "\n");
+            }
+        }
+
+        String tempFileForLog = baseDirPath + directoriesInGames[3] + "\\" + filesInTemp[0];
+
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(tempFileForLog))) {
+            String log = sb.toString();
+            String text = log;
+            bw.write(text);
+        } catch (IOException ex) {
             System.out.println(ex.getMessage(
             ));
-        }
-    }
-
-    public static void deleteSaveFiles(List<String> allSaves) {
-        for (int i = 0; i < allSaves.size(); i++) {
-            String saveFilePath = allSaves.get(i);
-            System.out.println("Удаляем файл \"" + saveFilePath + "\"");
-            File fileDel = new File(saveFilePath);
-            if (!fileDel.delete()) {
-                System.out.println("Файл \"" + saveFilePath + "\" НЕ УДАЛЕН !");
-            }
-        }
-    }
-
-    public static void zipFIles(String zipFilePath, List<String> allSaves) {
-        try (FileOutputStream fos = new FileOutputStream(zipFilePath);
-             ZipOutputStream zipOut = new ZipOutputStream(fos)) {
-            for (String save : allSaves) {
-                File fileToZip = new File(save);
-                try (FileInputStream fis = new FileInputStream(fileToZip)) {
-                    ZipEntry zipEntry = new ZipEntry(fileToZip.getName());
-                    zipOut.putNextEntry(zipEntry);
-                    byte[] buffer = new byte[fis.available()];
-                    fis.read(buffer);
-                    zipOut.write(buffer);
-                    zipOut.closeEntry();
-                    System.out.println("Файл \"" + save + "\" добавлен в архив " + "\"" + zipFilePath + "\"");
-                } catch (Exception ex) {
-                    System.out.println(ex.getMessage());
-                }
-            }
-        } catch (Exception ex) {
-            System.out.println(ex.getMessage());
         }
     }
 }
